@@ -1,4 +1,4 @@
-### Run app
+### Pyinstaller
 
 - Mac
     ```pyinstaller main.spec -y```
