@@ -5,5 +5,5 @@ from .meta import Meta
 class Process(Meta):
     __tablename__ = "process"
 
-    counter = Column(Integer, index=True)
-    canceled = Column(Boolean, index=True)
+    counter = Column(Integer)
+    canceled = Column(Boolean, default=False)

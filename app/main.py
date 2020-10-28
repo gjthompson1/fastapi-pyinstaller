@@ -12,3 +12,7 @@ from .routers import items, users, process
 app.include_router(users.router)
 app.include_router(items.router)
 app.include_router(process.router)
+
+import networkx as nx
+G = nx.DiGraph()
+G.add_node(1)

@@ -6,8 +6,8 @@ from .meta import Meta
 class Item(Meta):
     __tablename__ = "items"
 
-    title = Column(String, index=True)
-    description = Column(String, index=True)
+    title = Column(String)
+    description = Column(String)
     owner_id = Column(Integer, ForeignKey("users.id"))
 
     owner = relationship("User", back_populates="items")
