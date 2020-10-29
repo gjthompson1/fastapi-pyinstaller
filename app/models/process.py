@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Boolean
+from sqlalchemy import Column, Integer, Boolean, String
 
 from .meta import Meta
 
@@ -6,4 +6,4 @@ class Process(Meta):
     __tablename__ = "process"
 
     counter = Column(Integer)
-    canceled = Column(Boolean, default=False)
+    run_state = Column(String)
