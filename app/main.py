@@ -7,12 +7,9 @@ base.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-from .routers import items, users, process
+from .routers import items, users, process, graph
 
 app.include_router(users.router)
 app.include_router(items.router)
 app.include_router(process.router)
-
-import networkx as nx
-G = nx.DiGraph()
-G.add_node(1)
+app.include_router(graph.router)

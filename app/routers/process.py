@@ -1,42 +1,73 @@
-from fastapi import Depends
+from fastapi import Depends, Body
 from sqlalchemy.orm import Session
 
-from app.models import Process
-from app.database import get_db
+# from app.run_state import run_state
+from app.database import get_db, SessionLocal
 import time
+import json
 
 from fastapi import APIRouter
 
+import multiprocessing as mp
+
 router = APIRouter()
 
-import asyncio
-from concurrent.futures import ProcessPoolExecutor
+run_process = None
+run_state = None
 
-def cpu_bound_func(param):
+# import asyncio
+# from concurrent.futures import ProcessPoolExecutor
+
+def cpu_bound_func(param, run_state):
+    run_state['node'] = 'running'
     time.sleep(param)  # Pretend this is expensive calculations
+    run_state['node'] = 'completed'
+
+    # db = SessionLocal()
+    # process = db.query(Process).get(1)
+    # process.counter = param
+    # db.add(process)
+    # db.commit()
+
     return param + 1
 
-async def do_cpu_task(param: int):
-    loop = asyncio.get_event_loop()
-    executor = ProcessPoolExecutor()
-    print("task finished")
-    return await loop.run_in_executor(executor, cpu_bound_func, param)  # wait result
+# async def do_cpu_task(param: int):
+#     loop = asyncio.get_event_loop()
+#     executor = ProcessPoolExecutor()
+#     result = await loop.run_in_executor(executor, cpu_bound_func, param)
+#     print('Task finished')
+#     return result
 
 
-@router.get("/process/start")
-def start_process(db: Session = Depends(get_db)):
+# @router.post("/process/start")
+# async def start_process(counter: int = Body(...), db: Session = Depends(get_db)):
+#     res = await do_cpu_task(counter)
+#     return {"message": f"Result {res}"}
 
-    process = Process(counter=1)
-    db.add(process)
-    db.commit()
+@router.post("/process/start")
+def start_process(counter: int = Body(...), db: Session = Depends(get_db)):
 
-    return {"ping": "pong"}
+    global run_process, run_state
+
+    run_state = mp.Manager().dict()
+    run_process = mp.Process(target=cpu_bound_func, args=(counter, run_state))
+    run_process.start()
+    run_process.join()
+
+    return run_state.copy()
 
 @router.get("/process/cancel")
 def cancel_process(db: Session = Depends(get_db)):
 
-    process = Process(counter=1)
-    db.add(process)
-    db.commit()
+    global run_process
 
-    return {"ping": "pong"}
+    run_process.terminate()
+    run_process.join()
+    run_state['node'] = 'failed'
+
+    return run_state.copy()
+
+
+@router.get("/process/get-state")
+def get_state():
+    return run_state.copy()
